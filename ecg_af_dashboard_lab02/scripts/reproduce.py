@@ -55,10 +55,7 @@ def main() -> int:
             indent=2,
         )
 
-    # 10. Crear figuras resumen (si el flujo genera gráficos estáticos de salida)
-    print("Generando figuras resumen...")
-
-    # 11. Crear results/delivery_manifest.txt
+    # 10. Crear results/delivery_manifest.txt
     manifest_path = RESULTS_DIR / "delivery_manifest.txt"
     manifest_content = (
         "MANIFIESTO DE ENTREGA - PIPELINE REPRODUCIBLE\n"

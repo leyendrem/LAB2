@@ -9,9 +9,10 @@
 \usepackage{graphicx}
 \usepackage{siunitx}
 
-\title{Laboratorio 1}
-\subtitle{Python científico reproducible}
-\author{Cristian Stiven Capera, Ana Sofia García, Jeimmy Andrea Gonzáles, Karol Mariana Gutiérrez y Brayan Andrés Ruiz}
+\title{Laboratorio 2}
+\subtitle{Análisis de ECG y Fibrilación Auricular}
+\author{Integrantes: Cristian Stiven Capera C., Ana Sofía García G., Jeimmy Andrea Gonzáles G.,\\
+Karol Mariana Gutiérrez G. y Brayan Andrés Ruiz C.}
 \date{\today}
 
 \begin{document}
@@ -21,115 +22,98 @@
     \titlepage
 \end{frame}
 
-% Diapositiva 2: Problema y arquitectura (Secciones 7.1 y 7.4)
-\begin{frame}{Problema y arquitectura}
-    \begin{block}{Pregunta de Trabajo y Enfoque}
-        ¿Puede el equipo reconstruir en un computador distinto un análisis reproducible y legible, entendiendo que como ingenieros no siempre tendremos el privilegio de usar nuestros propios equipos?
+% Diapositiva 2: Problema, usuario, pregunta y límite clínico
+\begin{frame}{Problema, Usuario y Límite Clínico}
+    \begin{block}{Pregunta de Trabajo}
+        ¿Puede un tablero interactivo auditar las discrepancias entre anotaciones clínicas de Fibrilación Auricular (FA) y detecciones algorítmicas bajo condiciones de ruido real?
     \end{block}
-    \vspace{-0.1cm}
     \begin{itemize}
         \small
-        \item \textbf{Reproducibilidad:} Garantizar que el código corra en cualquier equipo de computación externo sin requerir copias manuales del entorno virtual ni ajustes de rutas.
-        \item \textbf{Legibilidad y Estándares:} Escribir código limpio y estructurado que cualquier persona pueda leer, evaluar y mantener fácilmente.
-        \item \textbf{Arquitectura Modular:} Separación de responsabilidades en carpetas (\texttt{src/}, \texttt{tests/}, \texttt{scripts/}) controladas mediante \texttt{uv}.
+        \item \textbf{Usuario y Contexto:} Ingenieros biomédicos y clínicos evaluando registros ambulatorios largos del MIT-BIH Atrial Fibrillation Database (AFDB).
+        \item \textbf{Problema Técnico:} Los artefactos de movimiento y las fluctuaciones de línea base pueden inducir falsos positivos en detectores automáticos de picos.
+        \item \textbf{Límite Clínico:} Los algoritmos basados en umbrales de amplitud no sustituyen la auditoría visual experta ante episodios de mucho ruido.
     \end{itemize}
 \end{frame}
 
-% Diapositiva 3: Métodos y validación (Secciones 7.5, 7.6, 7.7 y 7.10)
-\begin{frame}{Métodos y validación}
+% Diapositiva 3: ECG, AFDB y cadena de procesamiento
+\begin{frame}{ECG, AFDB y Cadena de Procesamiento}
     \begin{columns}[T]
         \column{0.5\textwidth}
-        \textbf{Matemática y Simulación:}
+        \textbf{Datos y Arquitectura:}
         \begin{itemize}
             \small
-            \item Semilla determinista $\text{seed} = 42$ y $\Delta t = 0.05\text{ s}$.
-            \item Modelo de señal cruda: $x_{\text{raw}}(t) = \sin(2\pi \cdot 0.5 t) + 0.2 \cdot \mathcal{N}(0,1)$
-            \begin{itemize}
-                \tiny
-                \item Onda senoidal de frecuencia de 0.5Hz y ruido gaussiano.
-            \end{itemize}
-            \item Variante centrada de la señal cruda, se le resta la media temporal.
-            \item Estadística descriptiva, RMS y desviación estándar con $ddof=1$.
-            \item Matriz de Mezcla ($\mathbf{A}$) bien condicionada:
-            $\mathbf{A} = \begin{pmatrix} 2.0 & 1.0 \\ 1.0 & 3.0 \end{pmatrix}$.
+            \item \textbf{AFDB:} Registros de ECG de larga duración con anotaciones de ritmo oficiales en \texttt{data/raw/afdb/}.
+            \item \textbf{Procesamiento Dinámico:} Cálculo en memoria RAM sin persistencia pesada en \texttt{data/processed/}.
+            \item \textbf{Gestión:} Entorno estricto y determinista administrado mediante \texttt{uv}.
         \end{itemize}
         
         \column{0.5\textwidth}
-        \textbf{Control de Calidad y Pruebas:}
+        \textbf{Filtrado y Trazabilidad:}
         \begin{itemize}
             \small
-            \item Validación cruzando listas y conjuntos: analizando \texttt{observed = [SYNTH\_A, SYNTH\_B, SYNTH\_A]} frente a requeridos \texttt{\{SYNTH\_A, SYNTH\_B, REFERENCE\}}.
-            \begin{itemize}
-                \tiny
-                \item Duplicados: Detectó \texttt{SYNTH\_A}.
-                \item Faltantes: Ausencia de \texttt{REFERENCE}.
-                \item Rechazo de nombres vacíos.
-            \end{itemize}
-            \item Derivada e integración numérica:
-            \begin{itemize}
-                \tiny
-                \item Dev: Diferencias finitas para evaluar sensibilidad al ruido.
-                \item Int: Validación trapezoidal con función $t^2$.
-            \end{itemize}
-            \item Pruebas unitarias exitosas con \texttt{pytest}.
+            \item \textbf{Filtro Pasabanda:} Butterworth de fase cero (0.5--40 Hz) para eliminar la deriva de línea base.
+            \item \textbf{Inventario:} Control de integridad bit a bit mediante hashes SHA-256 en archivos JSON de resultados.
         \end{itemize}
     \end{columns}
 \end{frame}
 
-% Diapositiva 4: Resultados y Evidencia.
-\begin{frame}{Resultados y Evidencia Generada}
+% Diapositiva 4: QRS, RR, anotaciones, calidad y pruebas
+\begin{frame}{QRS, RR, Anotaciones, Calidad y Pruebas}
     \begin{columns}[T]
-        \column{0.45\textwidth}
-        \centering
-        \textbf{Visualización del Pipeline}
-        \vspace{0.05cm}
-        \includegraphics[width=0.70\linewidth]{figures/summary.png}
-        \tiny
-        \begin{itemize}
-            \item \textbf{Panel A/B/C:} Comparativa de señal cruda y centrada, Histograma de amplitudes de la señal centrada, y Derivada numérica en el intervalo $[1.0, 2.0]$ segs.
-        \end{itemize}
-        
-        \column{0.55\textwidth}
-        \textbf{Artefactos Dinámicos (Generados por \texttt{reproduce.py}):}
-        \vspace{0.05cm}
+        \column{0.5\textwidth}
+        \textbf{Detección y Control QRS:}
         \begin{itemize}
             \small
-            \item \textbf{\texttt{results/stats.json}:}
-            \begin{itemize}
-                \tiny
-                \item Estadísticas descriptivas de la señal cruda y centrada con unidades en mV ($ddof=1$).
-            \end{itemize}
-            \item \textbf{\texttt{results/summary\_table.tex}:}
-            \begin{itemize}
-                \tiny
-                \item Tabla LaTeX insertada de forma dinámica en el informe sin transcripción manual.
-            \end{itemize}
-            \item \textbf{\texttt{results/quality\_report.json}:}
-            \begin{itemize}
-                \tiny
-                \item Reporte de validación de canales y rechazo de nombres vacíos.
-            \end{itemize}
-            \item \textbf{\texttt{results/algebra\_report.json}:}
-            \begin{itemize}
-                \tiny
-                \item Verificación de formas, número de condición y recuperación de canales por álgebra lineal.
-            \end{itemize}
-            \item \textbf{\texttt{results/derivation\_integration\_report.json}:}
-            \begin{itemize}
-                \tiny 
-                \item Métricas de error (RMS/Máximo) de la derivada y validación de integración.
-            \end{itemize}
+            \item Detección mediante \texttt{xqrs\_detect} sobre la señal procesada.
+            \item Control post-detección aplicando restricciones de período refractario y rechazo de duplicados.
+            \item Cálculo de intervalos RR excluyendo transiciones de ritmo.
+        \end{itemize}
+        
+        \column{0.5\textwidth}
+        \textbf{Garantía y Calidad (\texttt{pytest}):}
+        \begin{itemize}
+            \small
+            \item Validación de contratos de entrada y salida en la configuración de canales.
+            \item Cobertura automatizada de pruebas unitarias para métricas y robustez ante ruido.
         \end{itemize}
     \end{columns}
 \end{frame}
 
-% Diapositiva 5: Reproducibilidad y limitaciones (Secciones 7.3 y 7.9)
-\begin{frame}{Reproducibilidad y limitaciones}
+% Diapositiva 5: Demostración y comparación principal
+\begin{frame}{Demostración y Comparación Principal}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \textbf{Exploración Interactiva en Streamlit:}
+        \begin{itemize}
+            \small
+            \item \textbf{Ventanas Cortas:} Permiten visualizar con precisión las cruces de QRS aceptados sobre la señal filtrada.
+            \item \textbf{Envolvente Dinámica:} Oculta las marcas QRS en vistas globales amplias para evitar sobrecarga visual y pérdida de rendimiento.
+        \end{itemize}
+        
+        \column{0.48\textwidth}
+        \textbf{Evidencia de Limitación en AFDB:}
+        \begin{itemize}
+            \small
+            \item \textbf{Registro 04043 (1100–1130 s):} Bajo episodios de FA anotada con artefactos severos de movimiento, el detector genera marcas falsas sobre oscilaciones espurias.
+            \item \textbf{Valor del Dashboard:} Permite auditar visualmente las fallas algorítmicas frente a la referencia clínica oficial.
+        \end{itemize}
+    \end{columns}
+\end{frame}
+
+% Diapositiva 6: Interpretación, limitaciones y reproducción
+\begin{frame}[fragile]{Interpretación, Limitaciones y Reproducción}
     \begin{itemize}
-        \item \textbf{Curva de Aprendizaje y Herramientas:} Retos operativos iniciales en el equipo para dominar la manipulación estricta de entornos con \texttt{uv}, analizar el código fuente de forma automática para detectar errores, problemas de lógica, e inconsistencias con \texttt{Ruff} y automatización vía scripts.
-        \item \textbf{Reproducibilidad Lograda:} A pesar de las dificultades técnicas, se consolidó un pipeline capaz de reconstruir el análisis en cualquier equipo mediante comandos limpios.
-        \item \textbf{Limitación Analítica y Alcance:} El sistema opera puramente sobre señales sintéticas controladas; no es extrapolable a datos fisiológicos reales.
+        \small
+        \item \textbf{Interpretación:} La automatización facilita la revisión masiva, pero la validación humana sigue siendo indispensable ante señales altamente contaminadas.
+        \item \textbf{Limitaciones:} Conjunto reducido de registros de la base de datos AFDB y no realiza diagnósticos clínicos en tiempo real, ya que los filtros de fase cero y los algoritmos implementados están diseñados para la auditoría offline.
+        \item \textbf{Reproducción Externa:}
     \end{itemize}
+    \vspace{-0.1cm}
+    \tiny
+    \begin{verbatim}
+    uv sync --locked && uv run pytest && uv run python scripts/reproduce.py
+    latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build/slides slides/presentacion.tex
+    \end{verbatim}
 \end{frame}
 
 \end{document}

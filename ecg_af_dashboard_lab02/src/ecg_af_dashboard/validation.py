@@ -71,13 +71,17 @@ def validate_ecg_record(record: ECGRecord) -> bool:
                 )
 
     # VII. Comprobación de la presencia de ventanas FA y no-FA en el conjunto de
-    # anotaciones.
-    FA_present = any("(AFIB" in note for note in record.rhythm_notes)
-    N_present = any("(N" in note for note in record.rhythm_notes)
-    if not FA_present and not N_present:
+    # anotaciones. Se reutiliza normalize_rhythm (annotations.py) en vez de comparar
+    # substrings a mano, para no depender de la forma exacta de cada nota.
+    normalized_labels = {normalize_rhythm(note) for note in record.rhythm_notes}
+    FA_present = "AF" in normalized_labels
+    N_present = "OTHER" in normalized_labels
+    # Se exige que AMBAS etiquetas existan (no basta con que exista al menos una):
+    # un registro solo-FA o solo-no-FA no permite la comparación que pide la guía.
+    if not (FA_present and N_present):
         raise ValueError(
-            "El registro no contiene las anotaciones mínimas esperadas "
-            "de FA o ritmo normal."
+            "El registro no contiene tanto anotaciones de FA como de ritmo no-FA; "
+            "no permite la comparación FA/no-FA requerida."
         )
 
     return True

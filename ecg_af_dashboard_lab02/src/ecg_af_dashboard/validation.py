@@ -1,5 +1,6 @@
 import numpy as np
 
+from ecg_af_dashboard.annotations import normalize_rhythm
 from ecg_af_dashboard.io import ECGRecord
 
 
